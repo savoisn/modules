@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testeur de Force de Mot de Passe</title>
+    <script>
+        function calculateEntropy(password) {
+            const charSets = {
+                lower: /[a-z]/.test(password) ? 26 : 0,
+                upper: /[A-Z]/.test(password) ? 26 : 0,
+                numbers: /[0-9]/.test(password) ? 10 : 0,
+                special: /[^a-zA-Z0-9]/.test(password) ? 32 : 0
+            };
+            
+            const charsetSize = Object.values(charSets).reduce((a, b) => a + b, 0);
+            if (charsetSize === 0) return 0;
+            
+            const entropy = Math.log2(Math.pow(charsetSize, password.length));
+            return entropy;
+        }
+
+        function classifyPasswordStrength(entropy) {
+            if (entropy < 40) return "Très faible";
+            if (entropy < 60) return "Faible";
+            if (entropy < 80) return "Moyen";
+            return "Fort";
+        }
+
+        function estimateCrackTime(entropy) {
+            const guessesPerSecond = 1e10;
+            const secondsToCrack = Math.pow(2, entropy) / guessesPerSecond;
+            return formatTime(secondsToCrack);
+        }
+
+        function formatTime(seconds) {
+            if (seconds < 60) return "Quelques secondes";
+            const timeUnits = [
+                { label: "minute(s)", value: 60 },
+                { label: "heure(s)", value: 60 },
+                { label: "jour(s)", value: 24 },
+                { label: "mois", value: 30 },
+                { label: "année(s)", value: 12 },
+                { label: "siècle(s)", value: 100 }
+            ];
+            
+            let time = seconds;
+            let unit = "secondes";
+            
+            for (let i = 0; i < timeUnits.length; i++) {
+                if (time / timeUnits[i].value < 1) break;
+                time /= timeUnits[i].value;
+                unit = timeUnits[i].label;
+            }
+            
+            return `Environ ${Math.round(time)} ${unit}`;
+        }
+
+        function updateCrackTime() {
+            const password = document.getElementById("password").value;
+            const entropyDisplay = document.getElementById("entropy");
+            const strengthDisplay = document.getElementById("strength");
+            const timeDisplay = document.getElementById("time");
+            
+            if (!password) {
+                entropyDisplay.textContent = "";
+                strengthDisplay.textContent = "";
+                timeDisplay.textContent = "";
+                return;
+            }
+            
+            const entropy = calculateEntropy(password);
+            const strength = classifyPasswordStrength(entropy);
+            const crackTime = estimateCrackTime(entropy);
+            
+            entropyDisplay.textContent = `Entropie : ${Math.round(entropy)} bits`;
+            strengthDisplay.textContent = `Force : ${strength}`;
+            timeDisplay.textContent = `Temps estimé de cassage : ${crackTime}`;
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center h-screen bg-gray-100">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96 text-center">
+        <h1 class="text-xl font-bold mb-4">Testeur de Force de Mot de Passe</h1>
+        <label for="password" class="sr-only">Saisissez votre mot de passe</label>
+        <input 
+            type="text" 
+            id="password" 
+            class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+            placeholder="Entrez votre mot de passe..." 
+            aria-describedby="entropy strength time"
+            oninput="updateCrackTime()"
+        >
+        <p id="entropy" class="mt-3 text-blue-600 font-medium"></p>
+        <p id="strength" class="mt-1 text-green-600 font-medium"></p>
+        <p id="time" class="mt-1 text-purple-600 font-medium"></p>
+    </div>
+</body>
+</html>
+

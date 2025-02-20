@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slider Accessible avec Feux d'Artifice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .slider-container {
+            text-align: center;
+        }
+        .slider {
+            width: 300px;
+            margin-top: 20px;
+        }
+        .slider-value {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slider-container" role="region" aria-labelledby="sliderLabel">
+        <span id="sliderValue" class="slider-value" aria-live="polite">50</span>
+        <input type="range" id="rangeSlider" class="slider" min="0" max="100" value="50" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <script>
+        const slider = document.getElementById('rangeSlider');
+        const sliderValue = document.getElementById('sliderValue');
+
+        slider.addEventListener('input', function() {
+            const value = slider.value;
+            sliderValue.textContent = value;
+            slider.setAttribute('aria-valuenow', value);
+            if (value == 33) {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            const step = 1; // Vous pouvez ajuster la valeur du pas si nécessaire
+            if (event.key === 'ArrowLeft') {
+                slider.value = Math.max(parseInt(slider.min), parseInt(slider.value) - step);
+                slider.dispatchEvent(new Event('input'));
+            } else if (event.key === 'ArrowRight') {
+                slider.value = Math.min(parseInt(slider.max), parseInt(slider.value) + step);
+                slider.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
